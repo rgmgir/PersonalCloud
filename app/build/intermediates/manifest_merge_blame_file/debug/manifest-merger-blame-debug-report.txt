@@ -1,0 +1,208 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.example.personalcloud"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="29"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:5:5-67
+11-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:5:22-64
+12    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+12-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:6:5-79
+12-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:6:22-76
+13    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+13-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:7:5-76
+13-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:7:22-73
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+14-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:8:5-77
+14-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:8:22-74
+15    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+15-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:9:5-87
+15-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:9:22-84
+16    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+16-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:10:5-77
+16-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:10:22-74
+17    <uses-permission android:name="android.permission.WAKE_LOCK" />
+17-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:11:5-68
+17-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:11:22-65
+18    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+18-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:12:5-95
+18-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:12:22-92
+19    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+19-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:13:5-111
+19-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:13:22-79
+20    <uses-permission
+20-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:14:5-107
+21        android:name="android.permission.READ_EXTERNAL_STORAGE"
+21-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:14:22-77
+22        android:maxSdkVersion="32" />
+22-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:14:78-104
+23    <uses-permission
+23-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:15:5-108
+24        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+24-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:15:22-78
+25        android:maxSdkVersion="29" />
+25-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:15:79-105
+26
+27    <permission
+27-->[androidx.core:core:1.12.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/56373ed35739f08bddbb18b7ed7e4113/transformed/core-1.12.0/AndroidManifest.xml:22:5-24:47
+28        android:name="com.example.personalcloud.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+28-->[androidx.core:core:1.12.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/56373ed35739f08bddbb18b7ed7e4113/transformed/core-1.12.0/AndroidManifest.xml:23:9-81
+29        android:protectionLevel="signature" />
+29-->[androidx.core:core:1.12.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/56373ed35739f08bddbb18b7ed7e4113/transformed/core-1.12.0/AndroidManifest.xml:24:9-44
+30
+31    <uses-permission android:name="com.example.personalcloud.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+31-->[androidx.core:core:1.12.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/56373ed35739f08bddbb18b7ed7e4113/transformed/core-1.12.0/AndroidManifest.xml:26:5-97
+31-->[androidx.core:core:1.12.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/56373ed35739f08bddbb18b7ed7e4113/transformed/core-1.12.0/AndroidManifest.xml:26:22-94
+32
+33    <application
+33-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:17:5-50:19
+34        android:allowBackup="false"
+34-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:19:9-36
+35        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+35-->[androidx.core:core:1.12.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/56373ed35739f08bddbb18b7ed7e4113/transformed/core-1.12.0/AndroidManifest.xml:28:18-86
+36        android:debuggable="true"
+37        android:extractNativeLibs="false"
+38        android:icon="@mipmap/ic_launcher"
+38-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:20:9-43
+39        android:label="Personal Cloud"
+39-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:21:9-39
+40        android:roundIcon="@mipmap/ic_launcher_round"
+40-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:22:9-54
+41        android:supportsRtl="true"
+41-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:23:9-35
+42        android:theme="@style/Theme.PersonalCloud"
+42-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:24:9-51
+43        android:usesCleartextTraffic="true" >
+43-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:18:9-44
+44        <activity
+44-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:26:9-34:20
+45            android:name="com.example.personalcloud.MainActivity"
+45-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:27:13-41
+46            android:exported="true"
+46-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:28:13-36
+47            android:theme="@style/Theme.PersonalCloud" >
+47-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:29:13-55
+48            <intent-filter>
+48-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:30:13-33:29
+49                <action android:name="android.intent.action.MAIN" />
+49-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:31:17-69
+49-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:31:25-66
+50
+51                <category android:name="android.intent.category.LAUNCHER" />
+51-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:32:17-77
+51-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:32:27-74
+52            </intent-filter>
+53        </activity>
+54
+55        <service
+55-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:36:9-39:56
+56            android:name="com.example.personalcloud.server.CloudServerService"
+56-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:37:13-54
+57            android:exported="false"
+57-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:38:13-37
+58            android:foregroundServiceType="dataSync" />
+58-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:39:13-53
+59
+60        <provider
+61            android:name="androidx.core.content.FileProvider"
+61-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:42:13-62
+62            android:authorities="com.example.personalcloud.fileprovider"
+62-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:43:13-64
+63            android:exported="false"
+63-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:44:13-37
+64            android:grantUriPermissions="true" >
+64-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:45:13-47
+65            <meta-data
+65-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:46:13-48:54
+66                android:name="android.support.FILE_PROVIDER_PATHS"
+66-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:47:17-67
+67                android:resource="@xml/file_paths" />
+67-->/home/dastgir-siddiq/PersonalCloud/app/src/main/AndroidManifest.xml:48:17-51
+68        </provider>
+69
+70        <activity
+70-->[androidx.compose.ui:ui-tooling-android:1.6.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/06b73c90e0821b527736051fa481fbb0/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+71            android:name="androidx.compose.ui.tooling.PreviewActivity"
+71-->[androidx.compose.ui:ui-tooling-android:1.6.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/06b73c90e0821b527736051fa481fbb0/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+72            android:exported="true" />
+72-->[androidx.compose.ui:ui-tooling-android:1.6.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/06b73c90e0821b527736051fa481fbb0/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+73        <activity
+73-->[androidx.compose.ui:ui-test-manifest:1.6.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/b52a194b60a963a4e634c29258617f22/transformed/ui-test-manifest-1.6.1/AndroidManifest.xml:23:9-25:39
+74            android:name="androidx.activity.ComponentActivity"
+74-->[androidx.compose.ui:ui-test-manifest:1.6.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/b52a194b60a963a4e634c29258617f22/transformed/ui-test-manifest-1.6.1/AndroidManifest.xml:24:13-63
+75            android:exported="true" />
+75-->[androidx.compose.ui:ui-test-manifest:1.6.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/b52a194b60a963a4e634c29258617f22/transformed/ui-test-manifest-1.6.1/AndroidManifest.xml:25:13-36
+76
+77        <provider
+77-->[androidx.emoji2:emoji2:1.3.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/27d58a1b73bbac74d988fd6da77d4247/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+78            android:name="androidx.startup.InitializationProvider"
+78-->[androidx.emoji2:emoji2:1.3.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/27d58a1b73bbac74d988fd6da77d4247/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+79            android:authorities="com.example.personalcloud.androidx-startup"
+79-->[androidx.emoji2:emoji2:1.3.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/27d58a1b73bbac74d988fd6da77d4247/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+80            android:exported="false" >
+80-->[androidx.emoji2:emoji2:1.3.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/27d58a1b73bbac74d988fd6da77d4247/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+81            <meta-data
+81-->[androidx.emoji2:emoji2:1.3.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/27d58a1b73bbac74d988fd6da77d4247/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+82                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+82-->[androidx.emoji2:emoji2:1.3.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/27d58a1b73bbac74d988fd6da77d4247/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+83                android:value="androidx.startup" />
+83-->[androidx.emoji2:emoji2:1.3.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/27d58a1b73bbac74d988fd6da77d4247/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+84            <meta-data
+84-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/0e93c34e004799aca3d7735f4dcc5ea6/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:29:13-31:52
+85                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+85-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/0e93c34e004799aca3d7735f4dcc5ea6/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:30:17-78
+86                android:value="androidx.startup" />
+86-->[androidx.lifecycle:lifecycle-process:2.7.0] /home/dastgir-siddiq/.gradle/caches/transforms-3/0e93c34e004799aca3d7735f4dcc5ea6/transformed/lifecycle-process-2.7.0/AndroidManifest.xml:31:17-49
+87            <meta-data
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+88                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+88-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+89                android:value="androidx.startup" />
+89-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+90        </provider>
+91
+92        <receiver
+92-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+93            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+93-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+94            android:directBootAware="false"
+94-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+95            android:enabled="true"
+95-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+96            android:exported="true"
+96-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+97            android:permission="android.permission.DUMP" >
+97-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+98            <intent-filter>
+98-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+99                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+99-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+99-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+100            </intent-filter>
+101            <intent-filter>
+101-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+102                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+102-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+102-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+103            </intent-filter>
+104            <intent-filter>
+104-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+105                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+105-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+105-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+106            </intent-filter>
+107            <intent-filter>
+107-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+108                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+108-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+108-->[androidx.profileinstaller:profileinstaller:1.3.1] /home/dastgir-siddiq/.gradle/caches/transforms-3/bebad4ad1468634d2c3244e5e0b448d2/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+109            </intent-filter>
+110        </receiver>
+111    </application>
+112
+113</manifest>
