@@ -244,7 +244,7 @@ fun TransferDialog(session: TransferSession, onHide: () -> Unit, onCancel: () ->
 // ─────────────────────────────────────────────────────────────────────────────
 
 class MainActivity : ComponentActivity() {
-    private var isServerRunning by mutableStateOf(false)
+    private var isServerRunning by mutableStateOf(com.example.personalcloud.server.CloudServerService.isRunning)
     private var hasStorageAccess by mutableStateOf(false)
     private var connectedClients by mutableStateOf<List<com.example.personalcloud.server.FileServer.ConnectedClient>>(emptyList())
 
@@ -367,6 +367,14 @@ fun ServerScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Server", fontWeight = FontWeight.Bold) },
+                actions = {
+                    Text(buildAnnotatedString {
+                        append("Developed by ")
+                        withStyle(SpanStyle(fontSize = 15.sp, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.ExtraBold)) {
+                            append("Dastgir Siddiq")
+                        }
+                    }, fontSize = 12.sp, modifier = Modifier.padding(end = 16.dp))
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
@@ -377,31 +385,8 @@ fun ServerScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
-                // Branding
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
-                    Text(buildAnnotatedString {
-                        append("Developed by ")
-                        withStyle(SpanStyle(fontSize = 16.sp, color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.ExtraBold)) {
-                            append("Dastgir Siddiq")
-                        }
-                    }, fontSize = 13.sp)
-                }
-            }
-
-            item {
-                // Big icon with status
+                // Status
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier.size(100.dp).clip(CircleShape)
-                            .background(if (isServerRunning) Color(0xFF00C853).copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.CloudSync, null,
-                            modifier = Modifier.size(64.dp),
-                            tint = if (isServerRunning) Color(0xFF00C853) else MaterialTheme.colorScheme.primary
-                        )
-                    }
                     Spacer(Modifier.height(8.dp))
                     Text(
                         if (isServerRunning) "Server is Running" else "Server is Stopped",
@@ -660,10 +645,15 @@ fun ClientScreen() {
     }
 
     // Back navigation
-    if (isSelectionMode) {
-        androidx.activity.compose.BackHandler { isSelectionMode = false; selectedFiles = emptySet() }
-    } else if (currentPath.isNotEmpty()) {
-        androidx.activity.compose.BackHandler { fetchFiles(currentPath.substringBeforeLast("/", "")) }
+    androidx.activity.compose.BackHandler(enabled = isSelectionMode || isPaired) {
+        if (isSelectionMode) {
+            isSelectionMode = false
+            selectedFiles = emptySet()
+        } else if (isPaired && currentPath.isNotEmpty()) {
+            fetchFiles(currentPath.substringBeforeLast("/", ""))
+        } else if (isPaired) {
+            isPaired = false // Go back to Connected Devices list
+        }
     }
 
     // ── Open / Play File ───────────────────────────────────────────────────────
@@ -1061,7 +1051,6 @@ fun ClientScreen() {
                         if (isPaired && currentPath.isNotEmpty()) {
                             IconButton(onClick = { showMkdirDialog = true }) { Icon(Icons.Default.CreateNewFolder, "New Folder") }
                         }
-                        IconButton(onClick = { showConnDialog = true }) { Icon(Icons.Default.SettingsEthernet, "Connect") }
                         if (isPaired) IconButton(onClick = { fetchFiles(currentPath) }) { Icon(Icons.Default.Refresh, "Refresh") }
                     }
                 },
@@ -1087,13 +1076,6 @@ fun ClientScreen() {
                 FloatingActionButton(onClick = { filePicker.launch("*/*") }, containerColor = MaterialTheme.colorScheme.primary) {
                     Icon(Icons.Default.UploadFile, "Upload", tint = Color.White)
                 }
-            } else if (!isPaired) {
-                ExtendedFloatingActionButton(
-                    onClick = { showConnDialog = true },
-                    icon = { Icon(Icons.Default.Wifi, null) },
-                    text = { Text("Connect to Device") },
-                    containerColor = MaterialTheme.colorScheme.secondary
-                )
             }
         }
     ) { padding ->
@@ -1110,14 +1092,9 @@ fun ClientScreen() {
                 }
                 !isPaired -> {
                     Column(Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(Modifier.height(16.dp))
-                        Icon(Icons.Default.Dns, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
-                        Spacer(Modifier.height(16.dp))
-                        Text("My Network", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(errorMsg ?: "Select a device to browse its files.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        
-                        Spacer(Modifier.height(32.dp))
-                        
+                        if (errorMsg != null) {
+                            Text(errorMsg!!, color = MaterialTheme.colorScheme.error, fontSize = 14.sp, modifier = Modifier.padding(bottom = 16.dp))
+                        }
                         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(2.dp), modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(16.dp)) {
                                 Text("CONNECTED DEVICES (${savedServers.size}/3)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp)

@@ -16,6 +16,7 @@ class CloudServerService : Service() {
         const val ACTION_START = "START_SERVER"
         const val ACTION_STOP = "STOP_SERVER"
         const val EXTRA_PATHS = "ROOT_PATHS"
+        var isRunning = false
     }
 
     private var fileServer: FileServer? = null
@@ -66,6 +67,7 @@ class CloudServerService : Service() {
         fileServer?.rootPaths = paths
         try {
             fileServer?.start()
+            isRunning = true
         } catch (e: Exception) {
             android.util.Log.e("CloudServer", "Failed to start server", e)
         }
@@ -78,6 +80,7 @@ class CloudServerService : Service() {
         wakeLock = null
         wifiLock?.let { if (it.isHeld) it.release() }
         wifiLock = null
+        isRunning = false
     }
 
     private fun createNotificationChannel() {
