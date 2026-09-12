@@ -953,24 +953,24 @@ fun ClientScreen() {
         AlertDialog(
             onDismissRequest = { showConnDialog = false },
             shape = RoundedCornerShape(20.dp),
-            title = { Text("Connect to Server", fontWeight = FontWeight.Bold) },
+            title = { Text("Connect to Device", fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
                         value = tempServerName, onValueChange = { tempServerName = it },
-                        label = { Text("Server Name (e.g. PC)") },
+                        label = { Text("Device Name (e.g. PC)") },
                         leadingIcon = { Icon(Icons.Default.Computer, null) },
                         singleLine = true, modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = tempIp, onValueChange = { tempIp = it },
-                        label = { Text("Server IP Address") },
+                        label = { Text("Device IP Address") },
                         leadingIcon = { Icon(Icons.Default.Wifi, null) },
                         singleLine = true, modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
                         value = tempPin, onValueChange = { tempPin = it },
-                        label = { Text("Server PIN (leave blank if none)") },
+                        label = { Text("Device PIN (leave blank if none)") },
                         visualTransformation = if (showPinV) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                         trailingIcon = { IconButton(onClick = { showPinV = !showPinV }) { Icon(if (showPinV) Icons.Default.VisibilityOff else Icons.Default.Visibility, null) } },
@@ -1015,11 +1015,26 @@ fun ClientScreen() {
             TopAppBar(
                 title = {
                     if (isSelectionMode) Text("${selectedFiles.size} selected", fontWeight = FontWeight.Bold)
-                    else Text(if (currentPath.isEmpty()) "Client" else currentPath.substringAfterLast("/"), fontWeight = FontWeight.Bold)
+                    else {
+                        if (!isPaired) Text("Client", fontWeight = FontWeight.Bold)
+                        else if (currentPath.isEmpty()) {
+                            val currentServerName = savedServers.find { it.ip == ipAddress }?.name ?: "Connected"
+                            Text(currentServerName, fontWeight = FontWeight.Bold)
+                        } else Text(currentPath.substringAfterLast("/"), fontWeight = FontWeight.Bold)
+                    }
                 },
                 navigationIcon = {
-                    if (isSelectionMode) IconButton(onClick = { isSelectionMode = false; selectedFiles = emptySet() }) { Icon(Icons.Default.Close, "Cancel") }
-                    else if (currentPath.isNotEmpty()) IconButton(onClick = { fetchFiles(currentPath.substringBeforeLast("/", "")) }) { Icon(Icons.Default.ArrowBack, "Back") }
+                    if (isSelectionMode) {
+                        IconButton(onClick = { isSelectionMode = false; selectedFiles = emptySet() }) { Icon(Icons.Default.Close, "Cancel") }
+                    } else if (isPaired) {
+                        IconButton(onClick = { 
+                            if (currentPath.isNotEmpty()) {
+                                fetchFiles(currentPath.substringBeforeLast("/", ""))
+                            } else {
+                                isPaired = false // Return to server list
+                            }
+                        }) { Icon(Icons.Default.ArrowBack, "Back") }
+                    }
                 },
                 actions = {
                     // Hidden transfer restore icon
@@ -1074,7 +1089,7 @@ fun ClientScreen() {
                 ExtendedFloatingActionButton(
                     onClick = { showConnDialog = true },
                     icon = { Icon(Icons.Default.Wifi, null) },
-                    text = { Text("Connect to Server") },
+                    text = { Text("Connect to Device") },
                     containerColor = MaterialTheme.colorScheme.secondary
                 )
             }
@@ -1094,20 +1109,20 @@ fun ClientScreen() {
                 !isPaired -> {
                     Column(Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Spacer(Modifier.height(16.dp))
-                        Icon(Icons.Default.CloudOff, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+                        Icon(Icons.Default.Dns, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f))
                         Spacer(Modifier.height(16.dp))
-                        Text("Not Connected", fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                        Text(errorMsg ?: "Select a saved server or add a new one.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text("My Network", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(errorMsg ?: "Select a device to browse its files.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         
                         Spacer(Modifier.height(32.dp))
                         
                         Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(2.dp), modifier = Modifier.fillMaxWidth()) {
                             Column(Modifier.padding(16.dp)) {
-                                Text("SAVED SERVERS (${savedServers.size}/3)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp)
+                                Text("CONNECTED DEVICES (${savedServers.size}/3)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp)
                                 Spacer(Modifier.height(8.dp))
                                 
                                 if (savedServers.isEmpty()) {
-                                    Text("No servers saved yet.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text("No devices added yet.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 } else {
                                     savedServers.forEach { server ->
                                         Row(
@@ -1137,7 +1152,7 @@ fun ClientScreen() {
                                     Button(onClick = { showConnDialog = true }, modifier = Modifier.fillMaxWidth()) {
                                         Icon(Icons.Default.Add, null)
                                         Spacer(Modifier.width(8.dp))
-                                        Text("Add Server")
+                                        Text("Add Device")
                                     }
                                 }
                             }
