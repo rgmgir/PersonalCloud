@@ -352,7 +352,8 @@ fun ServerScreen(
     val context = LocalContext.current
     val prefs   = context.getSharedPreferences("PersonalCloud", Context.MODE_PRIVATE)
 
-    var path1  by remember { mutableStateOf(prefs.getString("path1", "/storage/emulated/0") ?: "/storage/emulated/0") }
+    val defaultPath = android.os.Environment.getExternalStorageDirectory().absolutePath
+    var path1  by remember { mutableStateOf(prefs.getString("path1", defaultPath) ?: defaultPath) }
     var path2  by remember { mutableStateOf(prefs.getString("path2", "") ?: "") }
     var path3  by remember { mutableStateOf(prefs.getString("path3", "") ?: "") }
 
@@ -541,8 +542,9 @@ fun ServerScreen(
             item {
                 Button(
                     onClick = {
-                        prefs.edit().putString("path1", path1).putString("path2", path2).putString("path3", path3).apply()
-                        onToggleServer(!isServerRunning, listOf(path1, path2, path3))
+                        val finalPaths = listOf(path1, path2, path3).filter { it.isNotBlank() }.ifEmpty { listOf(defaultPath) }
+                        prefs.edit().putString("path1", finalPaths.getOrNull(0) ?: "").putString("path2", finalPaths.getOrNull(1) ?: "").putString("path3", finalPaths.getOrNull(2) ?: "").apply()
+                        onToggleServer(!isServerRunning, finalPaths)
                     },
                     enabled = hasStorageAccess,
                     modifier = Modifier.fillMaxWidth().height(56.dp),

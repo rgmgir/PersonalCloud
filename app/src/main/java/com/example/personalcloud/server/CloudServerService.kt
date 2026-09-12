@@ -30,7 +30,12 @@ class CloudServerService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START -> {
-                val paths = intent.getStringArrayListExtra(EXTRA_PATHS) ?: arrayListOf("/storage/emulated/0")
+                val rawPaths = intent.getStringArrayListExtra(EXTRA_PATHS)
+                val paths = if (rawPaths.isNullOrEmpty() || rawPaths.all { it.isBlank() }) {
+                    arrayListOf(android.os.Environment.getExternalStorageDirectory().absolutePath)
+                } else {
+                    rawPaths
+                }
                 startServer(paths)
                 startForeground(1, createNotification())
             }
