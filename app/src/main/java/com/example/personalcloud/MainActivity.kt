@@ -581,6 +581,32 @@ fun ClientScreen() {
     var showConnDialog by remember { mutableStateOf(false) }
     var showMkdirDialog by remember { mutableStateOf(false) }
 
+    var savedServers by remember { 
+        mutableStateOf(
+            try {
+                val json = prefs.getString("saved_servers", "[]") ?: "[]"
+                val arr = org.json.JSONArray(json)
+                (0 until arr.length()).map { i ->
+                    val obj = arr.getJSONObject(i)
+                    SavedServer(obj.getString("name"), obj.getString("ip"), obj.getString("pin"))
+                }
+            } catch (e: Exception) { emptyList() }
+        )
+    }
+
+    fun saveServers(list: List<SavedServer>) {
+        val arr = org.json.JSONArray()
+        list.forEach { s ->
+            val obj = org.json.JSONObject()
+            obj.put("name", s.name)
+            obj.put("ip", s.ip)
+            obj.put("pin", s.pin)
+            arr.put(obj)
+        }
+        prefs.edit().putString("saved_servers", arr.toString()).apply()
+        savedServers = list
+    }
+
     val activeTransfers = remember { androidx.compose.runtime.mutableStateListOf<TransferSession>() }
     var isSelectionMode by remember { mutableStateOf(false) }
     var selectedFiles   by remember { mutableStateOf<Set<String>>(emptySet()) }
@@ -918,6 +944,7 @@ fun ClientScreen() {
 
     // ── Dialog: Connect / PIN ────────────────────────────────────────────────
     if (showConnDialog) {
+        var tempServerName by remember { mutableStateOf("My Server") }
         var tempIp   by remember { mutableStateOf(ipAddress) }
         var tempPin  by remember { mutableStateOf("") }
         var tempName by remember { mutableStateOf(android.os.Build.MODEL) }
@@ -930,15 +957,15 @@ fun ClientScreen() {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
-                        value = tempIp, onValueChange = { tempIp = it },
-                        label = { Text("Server IP Address") },
-                        leadingIcon = { Icon(Icons.Default.Wifi, null) },
+                        value = tempServerName, onValueChange = { tempServerName = it },
+                        label = { Text("Server Name (e.g. PC)") },
+                        leadingIcon = { Icon(Icons.Default.Computer, null) },
                         singleLine = true, modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
-                        value = tempName, onValueChange = { tempName = it },
-                        label = { Text("Your Device Name") },
-                        leadingIcon = { Icon(Icons.Default.Person, null) },
+                        value = tempIp, onValueChange = { tempIp = it },
+                        label = { Text("Server IP Address") },
+                        leadingIcon = { Icon(Icons.Default.Wifi, null) },
                         singleLine = true, modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
@@ -949,10 +976,22 @@ fun ClientScreen() {
                         trailingIcon = { IconButton(onClick = { showPinV = !showPinV }) { Icon(if (showPinV) Icons.Default.VisibilityOff else Icons.Default.Visibility, null) } },
                         singleLine = true, modifier = Modifier.fillMaxWidth()
                     )
+                    OutlinedTextField(
+                        value = tempName, onValueChange = { tempName = it },
+                        label = { Text("Your Device Name") },
+                        leadingIcon = { Icon(Icons.Default.Person, null) },
+                        singleLine = true, modifier = Modifier.fillMaxWidth()
+                    )
                 }
             },
             confirmButton = {
-                Button(onClick = { showConnDialog = false; pairWithServer(tempIp, tempPin, tempName) }) { Text("Connect") }
+                Button(onClick = { 
+                    showConnDialog = false
+                    if (savedServers.size < 3 && savedServers.none { it.ip == tempIp }) {
+                        saveServers(savedServers + SavedServer(tempServerName, tempIp, tempPin))
+                    }
+                    pairWithServer(tempIp, tempPin, tempName) 
+                }) { Text("Connect") }
             },
             dismissButton = { TextButton(onClick = { showConnDialog = false }) { Text("Cancel") } }
         )
@@ -1053,13 +1092,55 @@ fun ClientScreen() {
                     }
                 }
                 !isPaired -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(32.dp)) {
-                            Icon(Icons.Default.CloudOff, null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
-                            Spacer(Modifier.height(16.dp))
-                            Text("Not Connected", fontWeight = FontWeight.Bold, fontSize = 20.sp, color = MaterialTheme.colorScheme.onSurface)
-                            Spacer(Modifier.height(8.dp))
-                            Text(errorMsg ?: "Tap the button below to connect to a server device.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Column(Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Spacer(Modifier.height(16.dp))
+                        Icon(Icons.Default.CloudOff, null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f))
+                        Spacer(Modifier.height(16.dp))
+                        Text("Not Connected", fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                        Text(errorMsg ?: "Select a saved server or add a new one.", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        
+                        Spacer(Modifier.height(32.dp))
+                        
+                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(2.dp), modifier = Modifier.fillMaxWidth()) {
+                            Column(Modifier.padding(16.dp)) {
+                                Text("SAVED SERVERS (${savedServers.size}/3)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp)
+                                Spacer(Modifier.height(8.dp))
+                                
+                                if (savedServers.isEmpty()) {
+                                    Text("No servers saved yet.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                } else {
+                                    savedServers.forEach { server ->
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth().clickable { 
+                                                pairWithServer(server.ip, server.pin, android.os.Build.MODEL)
+                                            }.padding(vertical = 12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(Icons.Default.Computer, null, tint = MaterialTheme.colorScheme.secondary)
+                                            Spacer(Modifier.width(16.dp))
+                                            Column(Modifier.weight(1f)) {
+                                                Text(server.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                                                Text(server.ip, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                            }
+                                            IconButton(onClick = { 
+                                                saveServers(savedServers.filter { it != server })
+                                            }) {
+                                                Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error)
+                                            }
+                                        }
+                                        HorizontalDivider()
+                                    }
+                                }
+                                
+                                if (savedServers.size < 3) {
+                                    Spacer(Modifier.height(16.dp))
+                                    Button(onClick = { showConnDialog = true }, modifier = Modifier.fillMaxWidth()) {
+                                        Icon(Icons.Default.Add, null)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Add Server")
+                                    }
+                                }
+                            }
                         }
                     }
                 }
