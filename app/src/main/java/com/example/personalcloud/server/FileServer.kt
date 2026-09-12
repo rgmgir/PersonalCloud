@@ -29,14 +29,17 @@ class FileServer(private val context: Context, private val port: Int = 8080) {
     private var server: io.ktor.server.engine.ApplicationEngine? = null
     var rootPaths: List<String> = listOf("/storage/emulated/0")
     
-    // ─── Security: Runtime-generated session token ──────────────────────────
-    // A fresh token is created every time the server starts. The client must
-    // send this token as a header `X-Auth-Token` to be allowed access.
-    var sessionToken: String = ""
-        private set
+    // ─── Connected Clients Management ─────────────────────────────────────────
+    data class ConnectedClient(val token: String, val name: String, val ip: String, val connectedAt: Long)
+    val activeClients = mutableListOf<ConnectedClient>()
+    
+    companion object {
+        var onClientsChanged: ((List<ConnectedClient>) -> Unit)? = null
+    }
 
     fun start() {
-        sessionToken = java.util.UUID.randomUUID().toString().replace("-", "")
+        activeClients.clear()
+        onClientsChanged?.invoke(activeClients.toList())
         
         server = embeddedServer(Netty, port = port, configure = {
             responseWriteTimeoutSeconds = 3600
@@ -56,30 +59,47 @@ class FileServer(private val context: Context, private val port: Int = 8080) {
                 }
 
                 // ── Pair / exchange token (no auth required) ─────────────────
-                // Client connects to this endpoint first with the PIN. If the PIN
-                // matches, the server returns the session token.
                 post("/pair") {
                     val receivedPin = call.receiveText().trim()
+                    val deviceName = call.request.queryParameters["name"]?.takeIf { it.isNotBlank() } ?: "Unknown Client"
+                    val clientIp = call.request.local.remoteHost
+                    
                     val prefs = this@FileServer.context.getSharedPreferences("PersonalCloud", Context.MODE_PRIVATE)
                     val storedPin = prefs.getString("server_pin", "") ?: ""
 
-                    if (storedPin.isBlank()) {
-                        // No PIN set — server is in open mode, hand out token freely
-                        call.respondText(sessionToken)
+                    if (storedPin.isNotBlank() && receivedPin != storedPin) {
+                        call.respond(HttpStatusCode.Unauthorized, "Wrong PIN")
                         return@post
                     }
-                    if (receivedPin == storedPin) {
-                        call.respondText(sessionToken)
-                    } else {
-                        call.respond(HttpStatusCode.Unauthorized, "Wrong PIN")
+
+                    // Check if already connected by IP
+                    val existing = activeClients.find { it.ip == clientIp }
+                    if (existing != null) {
+                        val updated = existing.copy(name = deviceName, connectedAt = System.currentTimeMillis())
+                        activeClients[activeClients.indexOf(existing)] = updated
+                        onClientsChanged?.invoke(activeClients.toList())
+                        call.respondText(updated.token)
+                        return@post
                     }
+
+                    // Check max clients limit
+                    if (activeClients.size >= 3) {
+                        call.respond(HttpStatusCode.Forbidden, "Max clients (3) reached")
+                        return@post
+                    }
+
+                    // Issue new token
+                    val newToken = java.util.UUID.randomUUID().toString().replace("-", "")
+                    activeClients.add(ConnectedClient(newToken, deviceName, clientIp, System.currentTimeMillis()))
+                    onClientsChanged?.invoke(activeClients.toList())
+                    
+                    call.respondText(newToken)
                 }
 
                 // ── Helper: verify token ──────────────────────────────────────
                 fun isAuthorized(call: io.ktor.server.application.ApplicationCall): Boolean {
-                    if (sessionToken.isBlank()) return true
                     val provided = call.request.headers["X-Auth-Token"] ?: call.request.queryParameters["token"] ?: ""
-                    return provided == sessionToken
+                    return provided.isNotBlank() && activeClients.any { it.token == provided }
                 }
 
                 // ── Helper: canonically check path is within allowed roots ────
@@ -313,6 +333,7 @@ class FileServer(private val context: Context, private val port: Int = 8080) {
     fun stop() {
         server?.stop(1000, 2000)
         server = null
-        sessionToken = ""
+        activeClients.clear()
+        onClientsChanged?.invoke(activeClients.toList())
     }
 }

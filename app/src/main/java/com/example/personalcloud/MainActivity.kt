@@ -246,11 +246,13 @@ fun TransferDialog(session: TransferSession, onHide: () -> Unit, onCancel: () ->
 class MainActivity : ComponentActivity() {
     private var isServerRunning by mutableStateOf(false)
     private var hasStorageAccess by mutableStateOf(false)
+    private var connectedClients by mutableStateOf<List<com.example.personalcloud.server.FileServer.ConnectedClient>>(emptyList())
 
     private val storagePermissionLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { checkStorageAccess() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.example.personalcloud.server.FileServer.onClientsChanged = { clients -> runOnUiThread { connectedClients = clients } }
         checkStorageAccess()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
@@ -292,7 +294,7 @@ class MainActivity : ComponentActivity() {
                 ) { padding ->
                     Box(modifier = Modifier.padding(padding).fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                         if (currentTab == 0)
-                            ServerScreen(hasStorageAccess, isServerRunning, { requestStoragePermission() }) { s, paths ->
+                            ServerScreen(hasStorageAccess, isServerRunning, connectedClients, { requestStoragePermission() }) { s, paths ->
                                 if (s) startServer(paths) else stopServer()
                             }
                         else ClientScreen()
@@ -343,6 +345,7 @@ class MainActivity : ComponentActivity() {
 fun ServerScreen(
     hasStorageAccess: Boolean,
     isServerRunning: Boolean,
+    connectedClients: List<com.example.personalcloud.server.FileServer.ConnectedClient>,
     onRequestStorage: () -> Unit,
     onToggleServer: (Boolean, List<String>) -> Unit
 ) {
@@ -432,6 +435,31 @@ fun ServerScreen(
                             Text("Grant All Files Access to share your folders.", color = MaterialTheme.colorScheme.onErrorContainer, fontSize = 13.sp)
                             Spacer(Modifier.height(8.dp))
                             Button(onClick = onRequestStorage) { Text("Grant Permission") }
+                        }
+                    }
+                }
+            }
+
+            if (isServerRunning) {
+                item {
+                    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface), elevation = CardDefaults.cardElevation(2.dp), modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text("CONNECTED CLIENTS (${connectedClients.size}/3)", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary, letterSpacing = 1.sp)
+                            Spacer(Modifier.height(8.dp))
+                            if (connectedClients.isEmpty()) {
+                                Text("No clients connected yet.", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            } else {
+                                connectedClients.forEach { c ->
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                                        Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.secondary)
+                                        Spacer(Modifier.width(12.dp))
+                                        Column {
+                                            Text(c.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                            Text(c.ip, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -666,13 +694,13 @@ fun ClientScreen() {
     }
 
     // ── Pair with server (exchange PIN for token) ─────────────────────────────
-    fun pairWithServer(ip: String, pin: String) {
+    fun pairWithServer(ip: String, pin: String, name: String) {
         isLoading = true; errorMsg = null
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 val client = buildOkHttpClient()
                 val body = okhttp3.RequestBody.create("text/plain".toMediaTypeOrNull(), pin)
-                val response = client.newCall(okhttp3.Request.Builder().url("http://$ip:8080/pair").post(body).build()).execute()
+                val response = client.newCall(okhttp3.Request.Builder().url("http://$ip:8080/pair?name=${Uri.encode(name)}").post(body).build()).execute()
                 when {
                     response.isSuccessful -> {
                         val token = response.body?.string()?.trim() ?: ""
@@ -875,7 +903,7 @@ fun ClientScreen() {
     // ── Auto-connect on first open ────────────────────────────────────────────
     LaunchedEffect(Unit) {
         if (ipAddress.isNotBlank() && ipAddress != "192.168." && !isPaired) {
-            pairWithServer(ipAddress, "")
+            pairWithServer(ipAddress, "", android.os.Build.MODEL)
         }
     }
 
@@ -890,8 +918,9 @@ fun ClientScreen() {
 
     // ── Dialog: Connect / PIN ────────────────────────────────────────────────
     if (showConnDialog) {
-        var tempIp  by remember { mutableStateOf(ipAddress) }
-        var tempPin by remember { mutableStateOf("") }
+        var tempIp   by remember { mutableStateOf(ipAddress) }
+        var tempPin  by remember { mutableStateOf("") }
+        var tempName by remember { mutableStateOf(android.os.Build.MODEL) }
         var showPinV by remember { mutableStateOf(false) }
 
         AlertDialog(
@@ -907,6 +936,12 @@ fun ClientScreen() {
                         singleLine = true, modifier = Modifier.fillMaxWidth()
                     )
                     OutlinedTextField(
+                        value = tempName, onValueChange = { tempName = it },
+                        label = { Text("Your Device Name") },
+                        leadingIcon = { Icon(Icons.Default.Person, null) },
+                        singleLine = true, modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
                         value = tempPin, onValueChange = { tempPin = it },
                         label = { Text("Server PIN (leave blank if none)") },
                         visualTransformation = if (showPinV) VisualTransformation.None else PasswordVisualTransformation(),
@@ -917,7 +952,7 @@ fun ClientScreen() {
                 }
             },
             confirmButton = {
-                Button(onClick = { showConnDialog = false; pairWithServer(tempIp, tempPin) }) { Text("Connect") }
+                Button(onClick = { showConnDialog = false; pairWithServer(tempIp, tempPin, tempName) }) { Text("Connect") }
             },
             dismissButton = { TextButton(onClick = { showConnDialog = false }) { Text("Cancel") } }
         )
