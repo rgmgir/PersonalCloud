@@ -24,7 +24,7 @@
 1. Open the **Personal Cloud** app.
 2. Navigate to the **Server Mode** tab (using the bottom navigation bar).
 3. The server will automatically start on your default storage path. You can add more paths by clicking the **Add Path** button.
-4. Look at the top of the screen and note down the **IP Address** (e.g., `192.168.0.110`). Keep the app open or running in the background.
+4. Look at the top right corner of the screen and note down the **IP Address** (e.g., `192.168.0.110`). Keep the app open or running in the background.
 
 ### Connecting the Client Device
 1. Open the app on your second phone (it opens in **Client Mode** by default).
