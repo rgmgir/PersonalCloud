@@ -78,7 +78,7 @@ class FileServer(private val context: Context, private val port: Int = 8080) {
                 // ── Helper: verify token ──────────────────────────────────────
                 fun isAuthorized(call: io.ktor.server.application.ApplicationCall): Boolean {
                     if (sessionToken.isBlank()) return true
-                    val provided = call.request.headers["X-Auth-Token"] ?: ""
+                    val provided = call.request.headers["X-Auth-Token"] ?: call.request.queryParameters["token"] ?: ""
                     return provided == sessionToken
                 }
 
@@ -256,13 +256,10 @@ class FileServer(private val context: Context, private val port: Int = 8080) {
                         call.respond(HttpStatusCode.BadRequest, "Invalid filename")
                         return@post
                     }
-                    if (!isPathAllowed(reqPath)) { call.respond(HttpStatusCode.Forbidden); return@post }
-
-                    val targetDir = File(reqPath)
-                    if (!targetDir.exists() || !targetDir.isDirectory) {
-                        call.respond(HttpStatusCode.BadRequest, "Invalid directory")
-                        return@post
-                    }
+                    // Force all uploads to Download/uploads
+                    val uploadsFolder = File(android.os.Environment.getExternalStoragePublicDirectory(android.os.Environment.DIRECTORY_DOWNLOADS), "uploads")
+                    if (!uploadsFolder.exists()) uploadsFolder.mkdirs()
+                    val targetDir = uploadsFolder
 
                     // Prevent overwriting — auto-rename on conflict
                     var destFile = File(targetDir, safeName)

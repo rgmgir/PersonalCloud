@@ -617,7 +617,7 @@ fun ClientScreen() {
         val remotePath = if (currentPath.isEmpty()) file.name else "$currentPath/${file.name}"
 
         if (mime.startsWith("video/")) {
-            val fileUrl = "http://$ipAddress:8080/download?path=${Uri.encode(remotePath)}"
+            val fileUrl = "http://$ipAddress:8080/download?path=${Uri.encode(remotePath)}&token=${Uri.encode(authToken)}"
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(Uri.parse(fileUrl), mime)
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -719,7 +719,9 @@ fun ClientScreen() {
         if (!requiresZip) {
             val file = items.first()
             val remotePath = if (currentPath.isEmpty()) file.name else "$currentPath/${file.name}"
-            val destFile   = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), file.name)
+            val downloadsFolder = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "downloads")
+            if (!downloadsFolder.exists()) downloadsFolder.mkdirs()
+            val destFile   = File(downloadsFolder, file.name)
             val session    = TransferSession(file.name, false, remotePath, destFile.absolutePath, file.size, 1)
             activeTransfers.add(session)
 
@@ -746,7 +748,9 @@ fun ClientScreen() {
             }
         } else {
             val zipName  = "Archive_${System.currentTimeMillis()}.zip"
-            val destFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), zipName)
+            val downloadsFolder = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "downloads")
+            if (!downloadsFolder.exists()) downloadsFolder.mkdirs()
+            val destFile = File(downloadsFolder, zipName)
             val session  = TransferSession(zipName, false, "Multiple files (${items.size})", destFile.absolutePath, 0L, items.size)
             activeTransfers.add(session)
 
@@ -1045,6 +1049,7 @@ fun ClientScreen() {
                             FileItemRow(
                                 file            = file,
                                 ipAddress       = ipAddress,
+                                authToken       = authToken,
                                 currentPath     = currentPath,
                                 context         = context,
                                 imageLoader     = imageLoader,
@@ -1075,6 +1080,7 @@ fun ClientScreen() {
 fun FileItemRow(
     file: FileItem,
     ipAddress: String,
+    authToken: String,
     currentPath: String,
     context: Context,
     imageLoader: ImageLoader,
@@ -1131,7 +1137,10 @@ fun FileItemRow(
                     }
                 } else if (ext in listOf("jpg", "jpeg", "png", "webp", "gif", "mp4", "mkv", "avi", "webm", "mov", "apk")) {
                     AsyncImage(
-                        model = "http://$ipAddress:8080/thumbnail?path=${Uri.encode(filePath)}",
+                        model = coil.request.ImageRequest.Builder(context)
+                            .data("http://$ipAddress:8080/thumbnail?path=${Uri.encode(filePath)}")
+                            .addHeader("X-Auth-Token", authToken)
+                            .build(),
                         imageLoader = imageLoader,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
