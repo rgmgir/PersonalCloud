@@ -552,7 +552,6 @@ fun ClientScreen() {
 
     var showConnDialog by remember { mutableStateOf(false) }
     var showMkdirDialog by remember { mutableStateOf(false) }
-    var deleteConfirm  by remember { mutableStateOf<FileItem?>(null) }
 
     val activeTransfers = remember { androidx.compose.runtime.mutableStateListOf<TransferSession>() }
     var isSelectionMode by remember { mutableStateOf(false) }
@@ -564,13 +563,6 @@ fun ClientScreen() {
         ImageLoader.Builder(context)
             .okHttpClient { buildOkHttpClient() }
             .build()
-    }
-
-    // Back navigation
-    if (isSelectionMode) {
-        androidx.activity.compose.BackHandler { isSelectionMode = false; selectedFiles = emptySet() }
-    } else if (currentPath.isNotEmpty()) {
-        androidx.activity.compose.BackHandler { currentPath = currentPath.substringBeforeLast("/", "") }
     }
 
     // ── Fetch file listing ────────────────────────────────────────────────────
@@ -597,6 +589,68 @@ fun ClientScreen() {
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) { errorMsg = "Connection failed: ${e.message}"; isLoading = false }
+            }
+        }
+    }
+
+    // Back navigation
+    if (isSelectionMode) {
+        androidx.activity.compose.BackHandler { isSelectionMode = false; selectedFiles = emptySet() }
+    } else if (currentPath.isNotEmpty()) {
+        androidx.activity.compose.BackHandler { fetchFiles(currentPath.substringBeforeLast("/", "")) }
+    }
+
+    // ── Open / Play File ───────────────────────────────────────────────────────
+    fun openFile(file: FileItem) {
+        val ext = file.name.substringAfterLast('.', "").lowercase()
+        val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext) ?: when (ext) {
+            "mp4", "mkv", "avi", "webm", "mov" -> "video/*"
+            "pdf"  -> "application/pdf"
+            "jpg", "jpeg", "png", "gif", "webp" -> "image/*"
+            "txt", "csv" -> "text/plain"
+            "doc"  -> "application/msword"
+            "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            "apk"  -> "application/vnd.android.package-archive"
+            else   -> "*/*"
+        }
+
+        val remotePath = if (currentPath.isEmpty()) file.name else "$currentPath/${file.name}"
+
+        if (mime.startsWith("video/")) {
+            val fileUrl = "http://$ipAddress:8080/download?path=${Uri.encode(remotePath)}"
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(Uri.parse(fileUrl), mime)
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+            try { context.startActivity(Intent.createChooser(intent, "Open with…")) }
+            catch (e: Exception) { Toast.makeText(context, "No app found for this file type", Toast.LENGTH_SHORT).show() }
+        } else {
+            Toast.makeText(context, "Fetching file...", Toast.LENGTH_SHORT).show()
+            coroutineScope.launch(Dispatchers.IO) {
+                try {
+                    val destFile = File(context.cacheDir, file.name)
+                    val client = buildOkHttpClient(authToken)
+                    val call = client.newCall(okhttp3.Request.Builder().url("http://$ipAddress:8080/download?path=${Uri.encode(remotePath)}").build())
+                    val response = call.execute()
+                    if (response.isSuccessful) {
+                        response.body?.let { body ->
+                            body.byteStream().use { input -> destFile.outputStream().use { output -> input.copyTo(output) } }
+                        }
+                        withContext(Dispatchers.Main) {
+                            val uri = androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", destFile)
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                setDataAndType(uri, mime)
+                                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            }
+                            try { context.startActivity(Intent.createChooser(intent, "Open with…")) }
+                            catch (e: Exception) { Toast.makeText(context, "No app found for this file type", Toast.LENGTH_SHORT).show() }
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) { Toast.makeText(context, "Failed to fetch file", Toast.LENGTH_SHORT).show() }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) { Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show() }
+                }
             }
         }
     }
@@ -718,22 +772,6 @@ fun ClientScreen() {
                     withContext(kotlinx.coroutines.NonCancellable) { withContext(Dispatchers.Main) { activeTransfers.remove(session) } }
                 }
             }
-        }
-    }
-
-    // ── Delete ─────────────────────────────────────────────────────────────────
-    fun deleteFile(file: FileItem) {
-        val remotePath = if (currentPath.isEmpty()) file.name else "$currentPath/${file.name}"
-        coroutineScope.launch(Dispatchers.IO) {
-            try {
-                val client  = buildOkHttpClient(authToken)
-                val reqBody = okhttp3.RequestBody.create("text/plain".toMediaTypeOrNull(), remotePath)
-                val response = client.newCall(okhttp3.Request.Builder().url("http://$ipAddress:8080/delete").post(reqBody).build()).execute()
-                withContext(Dispatchers.Main) {
-                    if (response.isSuccessful) { Toast.makeText(context, "Deleted: ${file.name}", Toast.LENGTH_SHORT).show(); fetchFiles(currentPath) }
-                    else Toast.makeText(context, "Delete failed", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) { withContext(Dispatchers.Main) { Toast.makeText(context, "Delete error: ${e.message}", Toast.LENGTH_SHORT).show() } }
         }
     }
 
@@ -883,17 +921,6 @@ fun ClientScreen() {
         )
     }
 
-    // ── Dialog: Delete confirmation ───────────────────────────────────────────
-    deleteConfirm?.let { target ->
-        AlertDialog(
-            onDismissRequest = { deleteConfirm = null },
-            title = { Text("Delete \"${target.name}\"?") },
-            text = { Text(if (target.isDirectory) "This will delete the entire folder and all contents." else "This file will be permanently deleted from the server.") },
-            confirmButton = { Button(onClick = { deleteConfirm = null; deleteFile(target) }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("Delete") } },
-            dismissButton = { TextButton(onClick = { deleteConfirm = null }) { Text("Cancel") } }
-        )
-    }
-
     // ── Main scaffold ─────────────────────────────────────────────────────────
     Scaffold(
         topBar = {
@@ -1027,7 +1054,7 @@ fun ClientScreen() {
                                 onLongClick     = { isSelectionMode = true; selectedFiles = selectedFiles + file.name },
                                 onSelectToggle  = { selectedFiles = if (isSelected) selectedFiles - file.name else selectedFiles + file.name },
                                 onDownload      = { selectedFiles = setOf(file.name); downloadSelected() },
-                                onDelete        = { deleteConfirm = file },
+                                onOpen          = { openFile(file) },
                                 onClick         = { if (file.isDirectory) fetchFiles(if (currentPath.isEmpty()) file.name else "$currentPath/${file.name}") }
                             )
                             Divider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.surfaceVariant)
@@ -1057,7 +1084,7 @@ fun FileItemRow(
     onLongClick: () -> Unit,
     onSelectToggle: () -> Unit,
     onDownload: () -> Unit,
-    onDelete: () -> Unit,
+    onOpen: () -> Unit,
     onClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -1160,36 +1187,12 @@ fun FileItemRow(
                 DropdownMenuItem(
                     text = { Text("Open / Play") },
                     leadingIcon = { Icon(Icons.Default.OpenInNew, null) },
-                    onClick = {
-                        expanded = false
-                        val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(ext) ?: when (ext) {
-                            "mp4", "mkv", "avi", "webm", "mov" -> "video/*"
-                            "pdf"  -> "application/pdf"
-                            "jpg", "jpeg", "png", "gif", "webp" -> "image/*"
-                            "txt", "csv" -> "text/plain"
-                            "doc"  -> "application/msword"
-                            "docx" -> "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                            "apk"  -> "application/vnd.android.package-archive"
-                            else   -> "*/*"
-                        }
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            setDataAndType(Uri.parse(fileUrl), mime)
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-                        }
-                        try { context.startActivity(Intent.createChooser(intent, "Open with…")) }
-                        catch (e: Exception) { Toast.makeText(context, "No app found for this file type", Toast.LENGTH_SHORT).show() }
-                    }
+                    onClick = { expanded = false; onOpen() }
                 )
                 DropdownMenuItem(
                     text = { Text("Download") },
                     leadingIcon = { Icon(Icons.Default.Download, null) },
                     onClick = { expanded = false; onDownload() }
-                )
-                Divider()
-                DropdownMenuItem(
-                    text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                    leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) },
-                    onClick = { expanded = false; onDelete() }
                 )
             }
         } else if (!isSelectionMode) {
@@ -1199,12 +1202,6 @@ fun FileItemRow(
                     text = { Text("Download as ZIP") },
                     leadingIcon = { Icon(Icons.Default.Archive, null) },
                     onClick = { expanded = false; onDownload() }
-                )
-                Divider()
-                DropdownMenuItem(
-                    text = { Text("Delete Folder", color = MaterialTheme.colorScheme.error) },
-                    leadingIcon = { Icon(Icons.Default.Delete, null, tint = MaterialTheme.colorScheme.error) },
-                    onClick = { expanded = false; onDelete() }
                 )
             }
         }

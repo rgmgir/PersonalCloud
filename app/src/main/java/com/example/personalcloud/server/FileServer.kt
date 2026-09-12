@@ -295,17 +295,6 @@ class FileServer(private val context: Context, private val port: Int = 8080) {
                     }
                 }
 
-                // ── Delete file / folder ─────────────────────────────────────
-                post("/delete") {
-                    if (!isAuthorized(call)) { call.respond(HttpStatusCode.Unauthorized); return@post }
-                    val reqPath = call.receiveText().trim()
-                    if (!isPathAllowed(reqPath)) { call.respond(HttpStatusCode.Forbidden); return@post }
-                    val target = File(reqPath)
-                    val deleted = target.deleteRecursively()
-                    if (deleted) call.respond(HttpStatusCode.OK, "Deleted")
-                    else call.respond(HttpStatusCode.InternalServerError, "Could not delete")
-                }
-
                 // ── Create new folder ─────────────────────────────────────────
                 post("/mkdir") {
                     if (!isAuthorized(call)) { call.respond(HttpStatusCode.Unauthorized); return@post }

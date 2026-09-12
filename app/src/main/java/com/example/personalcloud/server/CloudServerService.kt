@@ -59,7 +59,11 @@ class CloudServerService : Service() {
             fileServer = FileServer(applicationContext)
         }
         fileServer?.rootPaths = paths
-        fileServer?.start()
+        try {
+            fileServer?.start()
+        } catch (e: Exception) {
+            android.util.Log.e("CloudServer", "Failed to start server", e)
+        }
     }
 
     private fun stopServer() {
