@@ -365,7 +365,7 @@ fun ServerScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Server Mode", fontWeight = FontWeight.Bold) },
+                title = { Text("Server", fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
@@ -976,7 +976,7 @@ fun ClientScreen() {
             TopAppBar(
                 title = {
                     if (isSelectionMode) Text("${selectedFiles.size} selected", fontWeight = FontWeight.Bold)
-                    else Text(if (currentPath.isEmpty()) "Client Mode" else currentPath.substringAfterLast("/"), fontWeight = FontWeight.Bold)
+                    else Text(if (currentPath.isEmpty()) "Client" else currentPath.substringAfterLast("/"), fontWeight = FontWeight.Bold)
                 },
                 navigationIcon = {
                     if (isSelectionMode) IconButton(onClick = { isSelectionMode = false; selectedFiles = emptySet() }) { Icon(Icons.Default.Close, "Cancel") }
