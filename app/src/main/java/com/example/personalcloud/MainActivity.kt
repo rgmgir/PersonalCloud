@@ -584,11 +584,21 @@ fun ClientScreen() {
                     withContext(Dispatchers.Main) { files = list; currentPath = path; isLoading = false }
                 } else if (response.code == 401) {
                     withContext(Dispatchers.Main) { isPaired = false; errorMsg = "Authentication required — connect again."; isLoading = false }
+                } else if (response.code == 403 && path.isNotEmpty()) {
+                    withContext(Dispatchers.Main) { fetchFiles("") }
                 } else {
-                    withContext(Dispatchers.Main) { errorMsg = "Server error: ${response.code}"; isLoading = false }
+                    withContext(Dispatchers.Main) { 
+                        if (files.isEmpty()) errorMsg = "Server error: ${response.code}"
+                        else Toast.makeText(context, "Server error: ${response.code}", Toast.LENGTH_SHORT).show()
+                        isLoading = false 
+                    }
                 }
             } catch (e: Exception) {
-                withContext(Dispatchers.Main) { errorMsg = "Connection failed: ${e.message}"; isLoading = false }
+                withContext(Dispatchers.Main) { 
+                    if (files.isEmpty()) errorMsg = "Connection failed: ${e.message}"
+                    else Toast.makeText(context, "Connection failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                    isLoading = false 
+                }
             }
         }
     }
@@ -935,7 +945,7 @@ fun ClientScreen() {
                 },
                 navigationIcon = {
                     if (isSelectionMode) IconButton(onClick = { isSelectionMode = false; selectedFiles = emptySet() }) { Icon(Icons.Default.Close, "Cancel") }
-                    else if (currentPath.isNotEmpty()) IconButton(onClick = { currentPath = currentPath.substringBeforeLast("/", "") }) { Icon(Icons.Default.ArrowBack, "Back") }
+                    else if (currentPath.isNotEmpty()) IconButton(onClick = { fetchFiles(currentPath.substringBeforeLast("/", "")) }) { Icon(Icons.Default.ArrowBack, "Back") }
                 },
                 actions = {
                     // Hidden transfer restore icon
